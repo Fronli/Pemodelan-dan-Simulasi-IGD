@@ -1,0 +1,20 @@
+Antrean Pasien IGD Saat Lonjakan Kasus (Demam Berdarah/Virus Musiman)
+
+Jenis: Discrete Event Simulation (DES)
+Library Python: SimPy, Pandas, Matplotlib
+
+    Intro: Di Indonesia, saat musim pancaroba, kasus DBD atau ISPA sering melonjak tajam. Hal ini menyebabkan IGD rumah sakit overload. Pasien dengan kondisi darurat seringkali harus menunggu lama sebelum ditangani, yang mana bisa berakibat fatal. Makalah ini mengusulkan model simulasi alur penanganan pasien IGD untuk meminimalisir waktu tunggu ( waiting time).
+
+    Methodology: Model DES menggunakan SimPy. Entitas: Pasien (dibagi 3 prioritas: Merah/Gawat, Kuning/Sedang, Hijau/Ringan). Resource: Perawat Triage, Dokter Jaga, Bed IGD.
+
+    Result & Discussion:
+
+        Result: Grafik distribusi waktu tunggu pasien berdasarkan prioritas, utilisasi dokter (berapa % dokter sibuk), dan panjang antrean.
+
+        What-If Scenarios (PENTING):
+
+            Skenario 1: Apa yang terjadi jika rumah sakit menambah 1 Dokter Jaga vs. menambah 2 Perawat Triage saat peak hour? (Mana yang lebih efektif menurunkan antrean?)
+
+            Skenario 2: Bagaimana jika kedatangan pasien melonjak 2x lipat secara tiba-tiba (skenario wabah)? Apakah sistem kolaps?
+
+    Conclusion: Kesimpulan kebijakan mana (menambah resource A atau B) yang paling hemat biaya namun efektif mengurangi waktu tunggu pasien kritis.

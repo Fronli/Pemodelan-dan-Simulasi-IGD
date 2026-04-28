@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Antrean IGD — Discrete Event Simulation</title>
+  <meta name="description" content="Model simulasi DES untuk antrean pasien IGD saat lonjakan kasus musiman menggunakan SimPy">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loader-content">
+      <div class="pulse-ring"></div>
+      <p>Menjalankan simulasi<span class="dots"></span></p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <span class="header-icon">🏥</span>
+        <div>
+          <h1>Simulasi Antrean IGD</h1>
+          <p class="header-sub">Discrete Event Simulation &mdash; Lonjakan Kasus Musiman</p>
+        </div>
+      </div>
+      <div class="header-badge">SimPy &bull; Python</div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <h3><span class="section-icon">⚙️</span> Parameter Baseline</h3>
+        <div class="form-group">
+          <label for="inp-perawat">Perawat Triage</label>
+          <div class="input-wrap">
+            <button class="btn-adj" data-target="inp-perawat" data-dir="-1">−</button>
+            <input type="number" id="inp-perawat" value="2" min="1" max="20">
+            <button class="btn-adj" data-target="inp-perawat" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="inp-dokter">Dokter Jaga</label>
+          <div class="input-wrap">
+            <button class="btn-adj" data-target="inp-dokter" data-dir="-1">−</button>
+            <input type="number" id="inp-dokter" value="3" min="1" max="20">
+            <button class="btn-adj" data-target="inp-dokter" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="inp-bed">Bed IGD</label>
+          <div class="input-wrap">
+            <button class="btn-adj" data-target="inp-bed" data-dir="-1">−</button>
+            <input type="number" id="inp-bed" value="10" min="1" max="50">
+            <button class="btn-adj" data-target="inp-bed" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="inp-interval">Interval Kedatangan (mnt)</label>
+          <div class="input-wrap">
+            <button class="btn-adj" data-target="inp-interval" data-dir="-1">−</button>
+            <input type="number" id="inp-interval" value="5" min="1" max="30">
+            <button class="btn-adj" data-target="inp-interval" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="inp-duration">Durasi Simulasi (mnt)</label>
+          <input type="number" id="inp-duration" value="480" min="60" max="1440" step="60" class="full-input">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3><span class="section-icon">🔬</span> Skenario What-If</h3>
+        <label class="toggle-label">
+          <input type="checkbox" id="chk-dokter" checked>
+          <span class="toggle-switch"></span>
+          <span>+1 Dokter Jaga</span>
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="chk-perawat" checked>
+          <span class="toggle-switch"></span>
+          <span>+2 Perawat Triage</span>
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="chk-wabah" checked>
+          <span class="toggle-switch"></span>
+          <span>Wabah (2× Pasien)</span>
+        </label>
+      </div>
+
+      <button id="btn-run" class="btn-primary">
+        <span class="btn-icon">▶</span>
+        Jalankan Simulasi
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- Stats Cards -->
+      <section class="stats-row">
+        <div class="stat-card" id="card-total">
+          <div class="stat-top">
+            <span class="stat-emoji">👥</span>
+            <span class="stat-tag baseline">Baseline</span>
+          </div>
+          <div class="stat-value" id="stat-total">&mdash;</div>
+          <div class="stat-label">Total Pasien Dilayani</div>
+        </div>
+        <div class="stat-card" id="card-wait">
+          <div class="stat-top">
+            <span class="stat-emoji">⏱️</span>
+            <span class="stat-tag baseline">Baseline</span>
+          </div>
+          <div class="stat-value" id="stat-wait">&mdash;</div>
+          <div class="stat-label">Rata-rata Waktu Tunggu</div>
+        </div>
+        <div class="stat-card" id="card-util">
+          <div class="stat-top">
+            <span class="stat-emoji">🩺</span>
+            <span class="stat-tag baseline">Baseline</span>
+          </div>
+          <div class="stat-value" id="stat-util">&mdash;</div>
+          <div class="stat-label">Utilisasi Dokter</div>
+        </div>
+        <div class="stat-card accent-red" id="card-critical">
+          <div class="stat-top">
+            <span class="stat-emoji">🚨</span>
+            <span class="stat-tag critical">Kritis</span>
+          </div>
+          <div class="stat-value" id="stat-critical">&mdash;</div>
+          <div class="stat-label">Max Tunggu Pasien Merah</div>
+        </div>
+      </section>
+
+      <!-- Charts -->
+      <section class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Perbandingan Waktu Tunggu</h3>
+            <span class="chart-badge">Per Prioritas</span>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-wait"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Panjang Antrean</h3>
+            <span class="chart-badge">Time Series</span>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-queue"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Utilisasi Dokter</h3>
+            <span class="chart-badge">%</span>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-util"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Distribusi Waktu Tunggu</h3>
+            <span class="chart-badge">Baseline</span>
+          </div>
+          <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
+        </div>
+      </section>
+
+      <!-- Comparison Table -->
+      <section class="table-card">
+        <div class="chart-header">
+          <h3>📊 Perbandingan Skenario</h3>
+        </div>
+        <div class="table-scroll">
+          <table id="tbl-compare">
+            <thead>
+              <tr>
+                <th>Skenario</th>
+                <th>Pasien</th>
+                <th class="col-merah">Tunggu Merah</th>
+                <th class="col-kuning">Tunggu Kuning</th>
+                <th class="col-hijau">Tunggu Hijau</th>
+                <th>Utilisasi Dokter</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Conclusion -->
+      <section class="conclusion-card" id="conclusion" style="display:none;">
+        <h3>📋 Kesimpulan Simulasi</h3>
+        <div id="conclusion-text"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
