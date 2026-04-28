@@ -79,23 +79,155 @@
         </div>
       </div>
 
-      <div class="sidebar-section">
+      <div class="sidebar-section scenarios-section">
         <h3><span class="section-icon">🔬</span> Skenario What-If</h3>
-        <label class="toggle-label">
-          <input type="checkbox" id="chk-dokter" checked>
-          <span class="toggle-switch"></span>
-          <span>+1 Dokter Jaga</span>
-        </label>
-        <label class="toggle-label">
-          <input type="checkbox" id="chk-perawat" checked>
-          <span class="toggle-switch"></span>
-          <span>+2 Perawat Triage</span>
-        </label>
-        <label class="toggle-label">
-          <input type="checkbox" id="chk-wabah" checked>
-          <span class="toggle-switch"></span>
-          <span>Wabah (2× Pasien)</span>
-        </label>
+
+        <!-- Skenario 1 -->
+        <div class="scenario-card" id="sc-1">
+          <label class="toggle-label scenario-toggle">
+            <input type="checkbox" class="chk-scenario" data-idx="1" checked>
+            <span class="toggle-switch"></span>
+            <span class="scenario-title">Skenario 1</span>
+          </label>
+          <div class="scenario-body">
+            <div class="form-group">
+              <label>Nama</label>
+              <input type="text" class="sc-name full-input" data-idx="1" value="+1 Dokter Jaga">
+            </div>
+            <div class="sc-params">
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Perawat</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc1-dp" data-dir="-1">−</button>
+                  <input type="number" id="sc1-dp" class="sc-delta" value="0" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc1-dp" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Dokter</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc1-dd" data-dir="-1">−</button>
+                  <input type="number" id="sc1-dd" class="sc-delta" value="1" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc1-dd" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Bed</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc1-db" data-dir="-1">−</button>
+                  <input type="number" id="sc1-db" class="sc-delta" value="0" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc1-db" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Pasien ×</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc1-mul" data-dir="-0.5" data-step="0.5">−</button>
+                  <input type="number" id="sc1-mul" class="sc-delta" value="1" min="0.5" max="5" step="0.5">
+                  <button class="btn-adj" data-target="sc1-mul" data-dir="0.5" data-step="0.5">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skenario 2 -->
+        <div class="scenario-card" id="sc-2">
+          <label class="toggle-label scenario-toggle">
+            <input type="checkbox" class="chk-scenario" data-idx="2" checked>
+            <span class="toggle-switch"></span>
+            <span class="scenario-title">Skenario 2</span>
+          </label>
+          <div class="scenario-body">
+            <div class="form-group">
+              <label>Nama</label>
+              <input type="text" class="sc-name full-input" data-idx="2" value="+2 Perawat Triage">
+            </div>
+            <div class="sc-params">
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Perawat</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc2-dp" data-dir="-1">−</button>
+                  <input type="number" id="sc2-dp" class="sc-delta" value="2" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc2-dp" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Dokter</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc2-dd" data-dir="-1">−</button>
+                  <input type="number" id="sc2-dd" class="sc-delta" value="0" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc2-dd" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Bed</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc2-db" data-dir="-1">−</button>
+                  <input type="number" id="sc2-db" class="sc-delta" value="0" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc2-db" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Pasien ×</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc2-mul" data-dir="-0.5" data-step="0.5">−</button>
+                  <input type="number" id="sc2-mul" class="sc-delta" value="1" min="0.5" max="5" step="0.5">
+                  <button class="btn-adj" data-target="sc2-mul" data-dir="0.5" data-step="0.5">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skenario 3 -->
+        <div class="scenario-card" id="sc-3">
+          <label class="toggle-label scenario-toggle">
+            <input type="checkbox" class="chk-scenario" data-idx="3" checked>
+            <span class="toggle-switch"></span>
+            <span class="scenario-title">Skenario 3</span>
+          </label>
+          <div class="scenario-body">
+            <div class="form-group">
+              <label>Nama</label>
+              <input type="text" class="sc-name full-input" data-idx="3" value="Wabah (2× Pasien)">
+            </div>
+            <div class="sc-params">
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Perawat</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc3-dp" data-dir="-1">−</button>
+                  <input type="number" id="sc3-dp" class="sc-delta" value="0" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc3-dp" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Dokter</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc3-dd" data-dir="-1">−</button>
+                  <input type="number" id="sc3-dd" class="sc-delta" value="0" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc3-dd" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Δ Bed</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc3-db" data-dir="-1">−</button>
+                  <input type="number" id="sc3-db" class="sc-delta" value="0" min="-10" max="20">
+                  <button class="btn-adj" data-target="sc3-db" data-dir="1">+</button>
+                </div>
+              </div>
+              <div class="sc-param">
+                <span class="sc-param-label">Pasien ×</span>
+                <div class="input-wrap input-sm">
+                  <button class="btn-adj" data-target="sc3-mul" data-dir="-0.5" data-step="0.5">−</button>
+                  <input type="number" id="sc3-mul" class="sc-delta" value="2" min="0.5" max="5" step="0.5">
+                  <button class="btn-adj" data-target="sc3-mul" data-dir="0.5" data-step="0.5">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <button id="btn-run" class="btn-primary">

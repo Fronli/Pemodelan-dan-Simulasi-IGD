@@ -39,41 +39,64 @@ const inpDokter    = $('#inp-dokter');
 const inpBed       = $('#inp-bed');
 const inpInterval  = $('#inp-interval');
 const inpDuration  = $('#inp-duration');
-const chkDokter    = $('#chk-dokter');
-const chkPerawat   = $('#chk-perawat');
-const chkWabah     = $('#chk-wabah');
 
-// ---- Adjuster buttons ----
-document.querySelectorAll('.btn-adj').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const input = document.getElementById(btn.dataset.target);
-    const dir = parseInt(btn.dataset.dir);
-    const val = parseInt(input.value) + dir;
-    const min = parseInt(input.min);
-    const max = parseInt(input.max);
-    if (val >= min && val <= max) input.value = val;
+// ---- Adjuster buttons (supports float steps) ----
+function initAdjButtons() {
+  document.querySelectorAll('.btn-adj').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      const step = parseFloat(btn.dataset.step || '1');
+      const dir = parseFloat(btn.dataset.dir) > 0 ? 1 : -1;
+      const val = parseFloat(input.value) + dir * step;
+      const min = parseFloat(input.min);
+      const max = parseFloat(input.max);
+      if (val >= min && val <= max) {
+        input.value = step % 1 === 0 ? Math.round(val) : val.toFixed(1);
+      }
+    });
   });
-});
+}
+initAdjButtons();
 
 // ---- Build scenarios from UI ----
 function buildScenarios() {
-  const p  = parseInt(inpPerawat.value);
-  const d  = parseInt(inpDokter.value);
-  const b  = parseInt(inpBed.value);
-  const iv = parseFloat(inpInterval.value);
+  const p   = parseInt(inpPerawat.value);
+  const d   = parseInt(inpDokter.value);
+  const b   = parseInt(inpBed.value);
+  const iv  = parseFloat(inpInterval.value);
   const dur = parseInt(inpDuration.value);
 
+  // Baseline always included
   const scenarios = [
     { label: 'Baseline', num_perawat: p, num_dokter: d, num_bed: b, interval: iv, duration: dur }
   ];
-  if (chkDokter.checked) {
-    scenarios.push({ label: '+1 Dokter', num_perawat: p, num_dokter: d + 1, num_bed: b, interval: iv, duration: dur });
-  }
-  if (chkPerawat.checked) {
-    scenarios.push({ label: '+2 Perawat', num_perawat: p + 2, num_dokter: d, num_bed: b, interval: iv, duration: dur });
-  }
-  if (chkWabah.checked) {
-    scenarios.push({ label: 'Wabah 2\u00d7', num_perawat: p, num_dokter: d, num_bed: b, interval: iv / 2, duration: dur });
+
+  // Read each scenario card
+  for (let idx = 1; idx <= 3; idx++) {
+    const chk = document.querySelector(`.chk-scenario[data-idx="${idx}"]`);
+    if (!chk || !chk.checked) continue;
+
+    const name = document.querySelector(`.sc-name[data-idx="${idx}"]`);
+    const dp   = document.getElementById(`sc${idx}-dp`);
+    const dd   = document.getElementById(`sc${idx}-dd`);
+    const db   = document.getElementById(`sc${idx}-db`);
+    const mul  = document.getElementById(`sc${idx}-mul`);
+
+    const label      = name ? name.value.trim() || `Skenario ${idx}` : `Skenario ${idx}`;
+    const dPerawat   = dp  ? parseInt(dp.value)    || 0 : 0;
+    const dDokter    = dd  ? parseInt(dd.value)    || 0 : 0;
+    const dBed       = db  ? parseInt(db.value)    || 0 : 0;
+    const multiplier = mul ? parseFloat(mul.value) || 1 : 1;
+
+    scenarios.push({
+      label:       label,
+      num_perawat: Math.max(1, p + dPerawat),
+      num_dokter:  Math.max(1, d + dDokter),
+      num_bed:     Math.max(1, b + dBed),
+      interval:    Math.max(0.5, iv / multiplier),
+      duration:    dur,
+    });
   }
   return scenarios;
 }
@@ -408,33 +431,30 @@ function updateConclusion(results) {
   section.style.display = 'block';
 
   const baseline = results[0];
-  const scenarioDokter  = results.find(r => r.label.includes('Dokter'));
-  const scenarioPerawat = results.find(r => r.label.includes('Perawat'));
-  const scenarioWabah   = results.find(r => r.label.includes('Wabah'));
+  const others   = results.slice(1);
 
   let html = `<p>Simulasi berjalan selama <strong>${baseline.antrean_t.slice(-1)[0] || 480} menit</strong> dengan
     total <strong>${baseline.total_pasien} pasien</strong> dilayani pada skenario baseline.</p>`;
 
-  if (scenarioDokter && scenarioPerawat) {
-    const dokterBetter = scenarioDokter.mean_wait_all < scenarioPerawat.mean_wait_all;
-    const better = dokterBetter ? scenarioDokter : scenarioPerawat;
-    const worse  = dokterBetter ? scenarioPerawat : scenarioDokter;
-    html += `<p><strong>Skenario 1:</strong> Menambah resource —
-      <span class="highlight hl-green">${better.label}</span> lebih efektif
-      (rata-rata tunggu ${better.mean_wait_all} mnt vs ${worse.mean_wait_all} mnt).
-      Waktu tunggu pasien <strong>Merah (kritis)</strong> turun dari
-      ${baseline.per_prioritas.Merah.mean_wait} mnt menjadi ${better.per_prioritas.Merah.mean_wait} mnt.</p>`;
-  }
+  if (others.length > 0) {
+    // Find the best scenario (lowest mean wait)
+    const best = others.reduce((a, b) => a.mean_wait_all < b.mean_wait_all ? a : b);
+    const worst = others.reduce((a, b) => a.mean_wait_all > b.mean_wait_all ? a : b);
 
-  if (scenarioWabah) {
-    const collapsed = scenarioWabah.utilisasi_mean > 95;
-    html += `<p><strong>Skenario 2 (Wabah):</strong>
-      ${collapsed
-        ? `Sistem <span class="highlight hl-red">KOLAPS</span> — utilisasi dokter mencapai ${scenarioWabah.utilisasi_mean}%
-           dan waktu tunggu melonjak drastis (Kuning: ${scenarioWabah.per_prioritas.Kuning.mean_wait} mnt).
-           Penambahan resource sangat dibutuhkan saat wabah.`
-        : `Sistem masih mampu menangani beban 2× dengan utilisasi ${scenarioWabah.utilisasi_mean}%.`
-      }</p>`;
+    html += `<p><strong>Perbandingan:</strong> Dari ${others.length} skenario what-if,
+      <span class="highlight hl-green">${best.label}</span> paling efektif
+      menurunkan waktu tunggu (rata-rata ${best.mean_wait_all} mnt vs baseline ${baseline.mean_wait_all} mnt).
+      Waktu tunggu pasien <strong>Merah (kritis)</strong> turun dari
+      ${baseline.per_prioritas.Merah.mean_wait} mnt menjadi ${best.per_prioritas.Merah.mean_wait} mnt.</p>`;
+
+    // Check for any overloaded scenarios
+    const overloaded = others.filter(r => r.utilisasi_mean > 95);
+    if (overloaded.length > 0) {
+      const names = overloaded.map(r => `<span class="highlight hl-red">${r.label}</span>`).join(', ');
+      html += `<p><strong>Peringatan:</strong> Skenario ${names} menunjukkan sistem
+        <strong>mendekati/melebihi kapasitas</strong> (utilisasi >95%).
+        Penambahan resource sangat dibutuhkan pada kondisi ini.</p>`;
+    }
   }
 
   html += `<p style="margin-top:12px;color:var(--text-3);font-style:italic;">
